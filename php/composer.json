@@ -1,0 +1,11 @@
+{
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../serwisant-api/"
+    }
+  ],
+  "require": {
+    "serwisant/serwisant-api": "2.*"
+  }
+}
