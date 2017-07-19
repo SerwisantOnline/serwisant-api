@@ -2,7 +2,7 @@
   "repositories": [
     {
       "type": "path",
-      "url": "../serwisant-api/"
+      "url": "../../serwisant-api-php-sdk/"
     }
   ],
   "require": {
