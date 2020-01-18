@@ -1,93 +1,133 @@
-# Serwisant Online PHP API
-
+# Serwisant Online API
 
 ## Wstęp
 
+Dostęp do API mają klienci z aktywną subskrypcją `all-in-one`. Wygaśnięcie subskrypcji które skutkuje przejściem aplikacji w 
+tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **całkowitą blokadą API**.
 
-Dostęp do API mają klienci z subskrypcją 'all-in-one'
+API oparte jest o autoryzację OAuth oraz format GraphQL. Działa na bazie standardowego protokołu HTTPS. 
 
-Rozszerzone API zwraca dane osobowe Twoich klientów - wyniki zwrócone przez API powinny być zabezpieczone przed publicznym 
-dostępem - na Tobie spoczywa  odpowiednie zabezpieczenie tych danych.
+GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach. Jest to koncepcja całkowicie 
+odmienna od API opartego o REST. 
 
-API działa w imieniu pracownika który wygenerował i udostępnił dane autoryzacyjne. Wszystkie operacje będą wykonywane na 
-konto tego pracownika i podpisywane jego imieniem. Rozsądnym podejściem jest założenie fikcyjnego pracownika, np. 
-'Synchronizacja danych', wygenerowanie na nim danych dostępowych.
+## Zacznij w kilku krokach
+
+- Zapoznaj się z dokumentacją znajdującą się na stronie [https://graphql.org/learn](https://graphql.org/learn)
+- Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API
+- Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altair.sirmuel.design)
+- Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. 
+Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację
+- Zarejestruj aplikację OAuth w ustawieniach Serwisant Online
+- Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` aby pobrać token autoryzacyjny i 
+wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. Aby używać API wystarczy 
+sam klient HTTP
+
+## Zakres funkcjonalny, aktorzy
+
+Zgodnie z koncepcją GraphQL, podstawowym elementem API jest `schema`. Z uwagi na fakt, iż w ramach aplikacji Serwisant Online
+występują różni aktorzy (użytkownicy) udostępniliśmy kilka różnych schem, każda z nich przeznaczona jest dla innego aktora.
+
+### `service`
+
+Schema `service` zlokalizowana jest pod adresem `https://serwisant.online/graphql/service`.
+Aktorem w tej części API jest pracownik serwisu. Oznacza to, że znajdują się tutaj funkcjonalności, które widzisz po zalogowaniu
+się do aplikacji Serwisant Online jako pracownik. 
+
+Korzystaj z tej schemy, jeśli chcesz budować integracje mające dostęp i mogące modyfikować wszystkie dane w twojej bazie. 
+
+
+Schema co do zasady wymaga obecności konta pracownika i token OAuth użyty aby uzyskać do niej dostęp powinien być uzyskany 
+poprzez zalogowanie. Mają tu zastosowanie wszystkie istniejące ograniczenia związane z pracownikiem, czyli limitowanie IP, 
+ nadane uprawnienia, lub blokada/usunięcie konta. 
+ 
+ Dodatkowo, po nadaniu specjalnego uprawnienia (patrz sekcja _"Autoryzacja"_) możesz uzyskać dostęp bez logowania jako pracownik. 
+ Zwróć uwagę, że w tym przypadku nie będą stosowane ograniczenia, dostęp może być cofnięty wyłącznie poprzez usunięcie całej aplikacji
+ OAuth.
+
+### `public`
+
+Schema `public`, nie wymaga aktora w postaci poświadczeń konkretnej osoby. Możesz ją znaleźć pod adresem `https://serwisant.online/graphql/public`
+Przeznaczona jest do anonimowych operacji, takich jak sprawdzenie stanu naprawy, akceptacja lub odrzucenie kosztów naprawy. 
+
+Korzystaj z tej schemy, jeśli chcesz udostępnić na własnej stronie proste sprawdzanie stanu naprawy.
+
+Schema nie wymaga obecności konta pracownika lub klienta.
 
 ## Autoryzacja
 
-Dostęp autoryzowany jest za pomocą OAuth, wymagane jest abyś otrzymał lub wygenerował samodzielnie Key i Secret.
+Dostęp do API autoryzowany jest za pomocą tokenu OAuth, który należy uzyskać przed pierwszym zapytaniem do API.
 
-Key i Secret możesz utworzyć na tej stronie: [https://serwisant-online.pl/oauth_credentials](https://serwisant-online.pl/oauth_credentials).
+Przed rozpoczęciem integracji wymagane jest abyś dodał aplikację OAuth. Możesz ją utworzyć używając narzędzia ze strony: 
+[https://serwisant-online.pl/oauth_applications](https://serwisant-online.pl/oauth_applications)
 
-W żądaniu HTTP przesyłąsz zawsze Key, natomiast Secret jest daną poufną, służącą do podpisania żądania. Powinieneś
-traktować Secret tak, jak hasło do aplikacji, chronić je i nie udostępniać osobom trzecim.
- 
-Używamy uproszczonego OAutha - nie wymagamy abyś pobierał request_token, ani przeprowadzał autoryzację request_tokena. 
+W trakcie tworzenia aplikacji otrzymasz  `key` i `secret`, które posłużą do uzyskania tokenu OAuth. Musisz także określić 
+zakres dostępu, który będzie miała aplikacja. Możesz wybrać spośród kilku uprawnień.
 
-Wystarczy, że każdy request HTTP zaopatrzysz w nagłówek ``Authorization`` zawierający sygnaturę OAuth 1.0 wygenerowaną
-z użyciem ``HMAC-SHA1``.
+`public` - uprawnienie pozwalające aplikacji na dostęp do schemy `public`
 
-Przykładowy nagłówek:
-```
-Authorization: OAuth oauth_version="1.0",oauth_nonce="c33b16edb4d87c2891a641863755265a",oauth_timestamp="1500500769",oauth_consumer_key="f073e5b4-e638-439a-8109-7da713cfd73e",oauth_signature_method="HMAC-SHA1",oauth_signature="zX2tE1d2e2LgZDFw%2F5vNG5wG0pA%3D"
-```
+`service_read` - uprawnienie pozwalające odczytywać dane ze schemy `service`
 
-Przykłady znajdziesz w katalogach ``php`` oraz ``ruby`` - sugerujemy, abyś nie implementował OAuth na nowo, poszukaj
-biblioteki odpowiedniej dla Twojego języka - z pewnością coś znajdziesz. Dla ``PHP`` polecamy przygotowaną przez nas
-bibliotekę kliencką: ``serwisant/serwisant-api`` która dostępna jest via ``composer``
+` service_write` - uprawnienie pozwalające zapisywać dane z użyciem schemy `service`. Zwróć uwagę, że do zapisu wymagane 
+jest uprawnienie do odczytu, ponieważ będziesz musiał przed zapisem określić identyfikatory relacji.
 
-## Paginacja list
+`service_allow_untrusted` - pozwalaj na dostęp do API bez konieczności podawania poświadczeń pracownika (login, hasło) - do
+autoryzacji wystarczą `key` i `secret` aplikacji OAuth. Wszelkie operacje zapisu będą robione na poczet pracownika `System`. 
+Stosuj to uprawnienie z rozwagą, głównie  do aplikacji, w których nie istnieje kontekst pracownika, np. dodawanie napraw z 
+poziomu twojej strony WWW.
 
-Każda wystawiana przez API lista ma nie więcej niż **10 elementów**. Aby pobrać kolejne 10 elementów należy dodać do adresu
-endpointu parametr ``page=n`` gdzie ``n`` to kolejna strona.
+Token możesz uzyskiwać wykonując zapytanie `HTTP POST` na `https://serwisant.online/oauth/token`
 
-Jeśli ilość elementów listy zwróconej dla strony ``n`` jest mniejsza niż 10 (może być 0) oznacza to, że nie ma więcej
-elementów na liście.
+Zapytanie powinno mieć następujące parametry, wysłane jako `form-data`
 
-Stad aby pobrać wszystkie elementy należy wywołać endpoint inkrementując parametr ``page`` do czasu, aż dostaniemy mniej
-niż 10 elementów w wyniku.
-
-## Naprawy
-
-### Lista napraw
-
-```
-https://serwisant-online.pl/api/v1/orders.json
-```
-
-Pod powyższym endpointem podajemy listę napraw - 
-
-Parametry:
-* _lang_ - zawsze ``pl``
-* _page_ - numer strony - int
-* _filter_ - widok listy - string
-* _sort_ - sposób sortowania listy - string
-* _id_ lub _status_id_ - dodatkowy warunek filtra, przekazujący np. identyfikator pracownika lub stanu naprawy
-
-Filtry:
-* _all_ - wszystkie naprawy, włącznie z zakończonymi
-* _expired_ - naprawy przeterminowane
-* _delegated_ - naprawy oddelegowane do zewnętrznych serwisów - wymaga dodatkowego parametru _id_ określającego identyfikator serwisu
-* _status_ - naprawy w konkretnym statusie - wymaga dodatkowego parametru _status_id_ określającego identyfikator stanu naprawy
-* _open_ - otwarte (nieodebrane) naprawy
-* _service_supplier_ - naprawy przyjęte w konkretnym oddziale serwisowym - wymaga dodatkowego parametru _id_ określającego identyfikator serwisu
-* _employee_service_supplier_ - naprawy naprawiane w konkretnym oddziale serwisowym - wymaga dodatkowego parametru _id_ określającego identyfikator serwisu
-* _employee_ - naprawy przypisane do konkretnego pracownika - wymaga  dodatkowego parametru _id_ określającego identyfikator pracownika
-
-Sortowanie wg.:
-* _date_created_ - daty utworzenia 
-* _date_started_ - daty rozpoczęcia
-* _date_started_rev_ - daty rozpoczęcia (odwrócona)
-* _rma_ - numeru RMA
-* _customer_ - identyfikatora klienta
-* _kind_ - typy przedmioty naprawy
-* _status_ - stanu naprawy
-* _days_remaining_ - ilości dni, które zostały do końca naprawy
-* _updated_at_ - daty aktualizacji
+-  `grant_type` - określa sposób logowania - `client_credentials` to logowanie bezkontekstowe, z użyciem danych aplikacji, 
+`password` to logowanie konkretnego użytkownika i praca z jego poświadczeniami.
+- `client_id` - identyfikator aplikacji, inaczej `key` podany podczas tworzenia aplikacji
+- `client_secret` - hasło aplikacji, inaczej `secret` podany podczas tworzenia aplikacji
+- `scope` - uprawnienia na których będzie działała aplikacja. Uprawnienia oddzielane są spacją. Możesz podać tu mniej uprawnień niż
+zdefiniowano dla aplikacji, lecz nie więcej - prośba o uprawnienia inne, niż te które definiuje aplikacja identyfikowana poprzez `client_id`
+nie powiedzie się.
+- `username` i `password` - login i hasło pracownika lub klienta w przypadku użycia `grant_type=password` - to muszą być poprawne dane
+konta istniejącego w ramach aplikacji.
 
 Przykładowe zapytania:
-
 ```
-https://serwisant-online.pl/api/v1/orders.json?lang=pl&page=1&filter=open&sort=status
-https://serwisant-online.pl/api/v1/orders.json?lang=pl&page=1&filter=status&status_id=10
+curl 
+  -X POST 
+  --data "grant_type=client_credentials&client_id=xxx&client_secret=xxx&scope=public" 
+  https://serwisant.online/oauth/token
+
+curl 
+  -X POST 
+  --data "grant_type=client_credentials&client_id=xxx&client_secret=xxx&scope=service_read service_allow_untrusted" 
+  https://serwisant.online/oauth/token
+
+curl 
+  -X POST 
+  --data "?grant_type=password&client_id=xxx&client_secret=xxx&username=jankowalski&password=Sec.Ret.Pass&scope=service_read service_write" 
+  https://serwisant.online/oauth/token
+```
+
+W odpowiedzi otrzymasz JSON, w którym będzie token OAuth, a także jego TTL (czas życia) w sekundach. Po upływie TTL token 
+nie może być dłużej wykorzystany, jego użycie zostanie potraktowane jako nieautoryzowany dostęp. Przed upływem tego czasu należy
+ponownie przeprowadzić operacje uzyskania tokena. 
+
+**UWAGA**: nie powinieneś uzyskiwać tokena przy każdym zapytaniu. Token powinien być pozyskany jeśli wcześniej nie istniał
+lub czas jego życia się skończył. Zastrzegamy sobie możliwość blokady aplikacji, które pozyskują token przy każdym zapytaniu.
+
+## Zapytania API
+
+Zapytania API wysyłane są metodą `POST` gdzie payload przekazany jest w formie `raw JSON` na adres odpowiedniej schemy. 
+Zapytanie powinno być zgodnie ze specyfikacją GraphQL i zawierać nagłówki HTTP:
+- `Authorization: Bearer 000000000000000000000`  - nagłówek autoryzacji, gdzie `000000000000000000000` jest tokenem OAuth 
+uzyskanym z osobnego adresu (patrz sekcja _Autoryzacja_)
+- `Content-Type: application/json` - określenie typu żądania
+
+Przykładowe zapytanie:
+```
+curl
+  -X POST
+  -H "Content-Type: application/json"
+  -H "Authorization: Bearer 000000000000000000000"   
+  --data '{ "query": "{ viewer { employee { displayName } } }" }'
+  https://serwisant.online/graphql/service
 ```
