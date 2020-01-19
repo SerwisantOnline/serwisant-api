@@ -2,8 +2,8 @@
 
 ## Wstęp
 
-Dostęp do API mają klienci z aktywną subskrypcją `all-in-one`. Wygaśnięcie subskrypcji które skutkuje przejściem aplikacji w 
-tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **całkowitą blokadą API**.
+Dostęp do API mają klienci z aktywną subskrypcją `all-in-one`. Wygaśnięcie subskrypcji które skutkuje przejściem aplikacji 
+w tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **całkowitą blokadą API**.
 
 API oparte jest o autoryzację OAuth oraz format GraphQL. Działa na bazie standardowego protokołu HTTPS. 
 
@@ -16,11 +16,11 @@ odmienna od API opartego o REST.
 - Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API
 - Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altair.sirmuel.design)
 - Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. 
-Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację
+Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację już teraz
 - Zarejestruj aplikację OAuth w ustawieniach Serwisant Online
-- Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` aby pobrać token autoryzacyjny i 
-wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. Aby używać API wystarczy 
-sam klient HTTP
+- Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać 
+token autoryzacyjny i wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. 
+Aby używać API wystarczy sam klient HTTP
 
 ## Zakres funkcjonalny, aktorzy
 
@@ -34,7 +34,6 @@ Aktorem w tej części API jest pracownik serwisu. Oznacza to, że znajdują si�
 się do aplikacji Serwisant Online jako pracownik. 
 
 Korzystaj z tej schemy, jeśli chcesz budować integracje mające dostęp i mogące modyfikować wszystkie dane w twojej bazie. 
-
 
 Schema co do zasady wymaga obecności konta pracownika i token OAuth użyty aby uzyskać do niej dostęp powinien być uzyskany 
 poprzez zalogowanie. Mają tu zastosowanie wszystkie istniejące ograniczenia związane z pracownikiem, czyli limitowanie IP, 
@@ -53,6 +52,17 @@ Korzystaj z tej schemy, jeśli chcesz udostępnić na własnej stronie proste sp
 
 Schema nie wymaga obecności konta pracownika lub klienta.
 
+### `customer`
+
+Schema `customer` dostępna jest pod adresem `https://serwisant.online/graphql/customer` Aktorem tutaj jest klient serwisu. 
+Schema ta implementuje wszystkie funkcjonalności Panelu klienckiego aplikacji i jej głownym przeznaczeniem jest samodzielna
+implementacja tej czesci aplikacji, wzbogacona w własną logikę oraz wygląd.
+
+W odróżnieniu od pozostałych schem, część schemy `customer` dostępna jest bez zalogowania klienta (token uzyskany metodą 
+`client_credentials`), część wymaga zalogowania klienta (token uzyskany metodą `password`). Jest to zgodne z tym, jak 
+działa Panel. Aby dodać konto klienta, ustalić login i hasło nie mamy jeszcze jego konta zatem dostęp do tej części możliwy 
+jest bez logowania. Natomiast aby dodać naprawę, należy uzyskać poświadczenia klienta poprzez zmianę metody autoryzacji.  
+
 ## Autoryzacja
 
 Dostęp do API autoryzowany jest za pomocą tokenu OAuth, który należy uzyskać przed pierwszym zapytaniem do API.
@@ -64,6 +74,8 @@ W trakcie tworzenia aplikacji otrzymasz  `key` i `secret`, które posłużą do 
 zakres dostępu, który będzie miała aplikacja. Możesz wybrać spośród kilku uprawnień.
 
 `public` - uprawnienie pozwalające aplikacji na dostęp do schemy `public`
+
+`customer` - uprawnienie pozwalające dostęp do schemy `customer` w części bez zalogowania oraz z logowaniem 
 
 `service_read` - uprawnienie pozwalające odczytywać dane ze schemy `service`
 
@@ -131,3 +143,25 @@ curl
   --data '{ "query": "{ viewer { employee { displayName } } }" }'
   https://serwisant.online/graphql/service
 ```
+
+### Przykładowe procesy
+
+Aby przeprowadzić pewne operacje zapisu, wymagane jest uprzednie pozyskanie identyfikatorów relacji. 
+
+Dla przykładu, 
+aby dodać klienta za pomocą mutacji `createCustomer` należy uprzednio za pomocą query `customerAgreements` pobrać
+wszystkie dostępne zgody RODO, przedstawić je klientowi, odebrać akceptację i przesłać je w postaci encji zawierającej 
+`ID` zgody i stanu akceptacji.
+
+W innym przykładzie, aby dodać naprawę za pomocą mutacji `createRepair` należy podać typ naprawianego sprzętu. Zatem przed
+dodaniem naprawy należy za pomocą query `dictionaryEntries` pobrać wszystkie typy, przedstawić je klientowi, np. w postaci
+listy wyboru - zaś wybrany identyfikator `ID` przesłać jako `type` do encji tworzącej naprawę.
+
+### Inne wskazówki
+
+Zawsze zwracaj uwagę na typ zwracany lub przyjmowany. To on decyduje o tym, co zostanie zwrócone lub przyjęte, nie nazwa.
+
+Daty przesyłamy w formacie `ISO 8601` wraz ze strefą czasową.
+
+Wszelkie identyfikatory relacji są typu `HashID` i mają postać losowego ciągu znaków. Po stronie źródła pola je zawierające
+nazywają się najczęściej `ID`, po stronie odbiorcy pola nazywają się tak jak relacja, np. `type`, `customer` 
