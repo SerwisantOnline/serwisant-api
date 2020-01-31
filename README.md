@@ -40,8 +40,7 @@ poprzez zalogowanie. Mają tu zastosowanie wszystkie istniejące ograniczenia zw
  nadane uprawnienia, lub blokada/usunięcie konta. 
  
  Dodatkowo, po nadaniu specjalnego uprawnienia (patrz sekcja _"Autoryzacja"_) możesz uzyskać dostęp bez logowania jako pracownik. 
- Zwróć uwagę, że w tym przypadku nie będą stosowane ograniczenia, dostęp może być cofnięty wyłącznie poprzez usunięcie całej aplikacji
- OAuth.
+ Zwróć uwagę, że w tym przypadku nie będą stosowane ograniczenia, dostęp może być cofnięty wyłącznie poprzez usunięcie całej aplikacji OAuth, zaś wszystkie operacje zapisu będą logowane na konto wirtualnego pracownika `System` którego znajdziesz już teraz na liście pracowników.
 
 ### `public`
 
