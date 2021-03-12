@@ -12,15 +12,19 @@ odmienna od API opartego o REST.
 
 ## Zacznij w kilku krokach
 
-- Zapoznaj się z dokumentacją znajdującą się na stronie [https://graphql.org/learn](https://graphql.org/learn)
-- Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API
-- Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altair.sirmuel.design)
-- Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. 
+1. Zapoznaj się z dokumentacją znajdującą się na stronie [https://graphql.org/learn](https://graphql.org/learn)
+1. Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API
+1. Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altair.sirmuel.design)
+1. Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. 
 Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację już teraz
-- Zarejestruj aplikację OAuth w ustawieniach Serwisant Online
-- Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać 
+1. Zarejestruj aplikację OAuth w ustawieniach Serwisant Online
+1. Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać 
 token autoryzacyjny i wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. 
 Aby używać API wystarczy sam klient HTTP
+
+## Ok, ale gdzie jest dokumentacja?
+
+Przeczytaj punkt 3. we wcześniejszej sekcji. Schema API jest równocześnie jego dokumentacją - wiele zapytań, mutacji i pól ma także dodane przez nas opisy, które omawiają czym jest dany element.
 
 ## Zakres funkcjonalny, aktorzy
 
@@ -30,6 +34,7 @@ występują różni aktorzy (użytkownicy) udostępniliśmy kilka różnych sche
 ### `service`
 
 Schema `service` zlokalizowana jest pod adresem `https://serwisant.online/graphql/service`.
+
 Aktorem w tej części API jest pracownik serwisu. Oznacza to, że znajdują się tutaj funkcjonalności, które widzisz po zalogowaniu
 się do aplikacji Serwisant Online jako pracownik. 
 
@@ -39,8 +44,9 @@ Schema co do zasady wymaga obecności konta pracownika i token OAuth użyty aby 
 poprzez zalogowanie. Mają tu zastosowanie wszystkie istniejące ograniczenia związane z pracownikiem, czyli limitowanie IP, 
  nadane uprawnienia, lub blokada/usunięcie konta. 
  
- Dodatkowo, po nadaniu specjalnego uprawnienia (patrz sekcja _"Autoryzacja"_) możesz uzyskać dostęp bez logowania jako pracownik. 
- Zwróć uwagę, że w tym przypadku nie będą stosowane ograniczenia, dostęp może być cofnięty wyłącznie poprzez usunięcie całej aplikacji OAuth, zaś wszystkie operacje zapisu będą logowane na konto wirtualnego pracownika `System` którego znajdziesz już teraz na liście pracowników.
+Dodatkowo, po nadaniu specjalnego uprawnienia (patrz sekcja _"Autoryzacja"_) możesz uzyskać dostęp bez logowania jako pracownik.
+ 
+Zwróć uwagę, że w tym przypadku nie będą stosowane ograniczenia, np. blokada IP, dostęp może być cofnięty wyłącznie poprzez usunięcie całej aplikacji OAuth, zaś wszystkie operacje zapisu będą logowane na konto wirtualnego pracownika `System` którego znajdziesz już teraz na liście pracowników.
 
 ### `public`
 
@@ -54,13 +60,9 @@ Schema nie wymaga obecności konta pracownika lub klienta.
 ### `customer`
 
 Schema `customer` dostępna jest pod adresem `https://serwisant.online/graphql/customer` Aktorem tutaj jest klient serwisu. 
+
 Schema ta implementuje wszystkie funkcjonalności Panelu klienckiego aplikacji i jej głownym przeznaczeniem jest samodzielna
 implementacja tej czesci aplikacji, wzbogacona w własną logikę oraz wygląd.
-
-W odróżnieniu od pozostałych schem, część schemy `customer` dostępna jest bez zalogowania klienta (token uzyskany metodą 
-`client_credentials`), część wymaga zalogowania klienta (token uzyskany metodą `password`). Jest to zgodne z tym, jak 
-działa Panel. Aby dodać konto klienta, ustalić login i hasło nie mamy jeszcze jego konta zatem dostęp do tej części możliwy 
-jest bez logowania. Natomiast aby dodać naprawę, należy uzyskać poświadczenia klienta poprzez zmianę metody autoryzacji.  
 
 ## Autoryzacja
 
@@ -104,17 +106,17 @@ Przykładowe zapytania:
 ```
 curl 
   -X POST 
-  --data "grant_type=client_credentials&client_id=xxx&client_secret=xxx&scope=public" 
+  --data "grant_type=client_credentials&client_id=<***>&client_secret=<***>&scope=public" 
   https://serwisant.online/oauth/token
 
 curl 
   -X POST 
-  --data "grant_type=client_credentials&client_id=xxx&client_secret=xxx&scope=service_read service_allow_untrusted" 
+  --data "grant_type=client_credentials&client_id=<***>&client_secret=<***>&scope=service_read service_allow_untrusted" 
   https://serwisant.online/oauth/token
 
 curl 
   -X POST 
-  --data "?grant_type=password&client_id=xxx&client_secret=xxx&username=jankowalski&password=Sec.Ret.Pass&scope=service_read service_write" 
+  --data "?grant_type=password&client_id=<***>&client_secret=<***>&username=jankowalski&password=<***>&scope=service_read service_write" 
   https://serwisant.online/oauth/token
 ```
 
@@ -122,8 +124,15 @@ W odpowiedzi otrzymasz JSON, w którym będzie token OAuth, a także jego TTL (c
 nie może być dłużej wykorzystany, jego użycie zostanie potraktowane jako nieautoryzowany dostęp. Przed upływem tego czasu należy
 ponownie przeprowadzić operacje uzyskania tokena. 
 
-**UWAGA**: nie powinieneś uzyskiwać tokena przy każdym zapytaniu. Token powinien być pozyskany jeśli wcześniej nie istniał
-lub czas jego życia się skończył. Zastrzegamy sobie możliwość blokady aplikacji, które pozyskują token przy każdym zapytaniu.
+Jeśli token uzyskujesz przy pomocy loginu i hasła, to otrzymasz w odpowiedzi dodatkowo `refresh_token` - może on zostać użyty do ponownego pobrania `access_tokena` dla użytkownika bez konieczności ponownego proszenia go o hasło. Aby pobrać (odświeżyć) token użytkownika użyj przykadowego zaytania:
+```
+curl 
+  -X POST 
+  --data "grant_type=refresh_token&refresh_token=<***>" 
+  https://serwisant.online/oauth/token
+```
+
+**UWAGA**: nie powinieneś uzyskiwać tokena przy każdym zapytaniu. Token powinien być pozyskany jeśli wcześniej nie istniał lub czas jego życia się skończył. Zastrzegamy sobie możliwość blokady aplikacji, które pozyskują token przy każdym zapytaniu.
 
 ## Zapytania API
 
