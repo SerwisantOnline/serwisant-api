@@ -69,7 +69,7 @@ implementacja tej czesci aplikacji, wzbogacona w własną logikę oraz wygląd.
 Dostęp do API autoryzowany jest za pomocą tokenu OAuth, który należy uzyskać przed pierwszym zapytaniem do API.
 
 Przed rozpoczęciem integracji wymagane jest abyś dodał aplikację OAuth. Możesz ją utworzyć używając narzędzia ze strony: 
-[https://serwisant-online.pl/oauth_applications](https://serwisant-online.pl/oauth_applications)
+[https://serwisant.online/oauth_applications](https://serwisant.online/oauth_applications)
 
 W trakcie tworzenia aplikacji otrzymasz  `key` i `secret`, które posłużą do uzyskania tokenu OAuth. Musisz także określić 
 zakres dostępu, który będzie miała aplikacja. Możesz wybrać spośród kilku uprawnień.
