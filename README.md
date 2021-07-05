@@ -152,6 +152,8 @@ curl
   https://serwisant.online/graphql/service
 ```
 
+Przykłady wysyłania zapytań w PHP i innych językach można znaleźć w sieci, np. w artykule https://www.contentful.com/blog/2021/01/14/GraphQL-via-HTTP-in-five-ways/
+
 ### Przykładowe procesy
 
 Aby przeprowadzić pewne operacje zapisu, wymagane jest uprzednie pozyskanie identyfikatorów relacji. 
