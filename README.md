@@ -116,7 +116,7 @@ curl
 
 curl 
   -X POST 
-  --data "?grant_type=password&client_id=<***>&client_secret=<***>&username=jankowalski&password=<***>&scope=service_read service_write" 
+  --data "grant_type=password&client_id=<***>&client_secret=<***>&username=jankowalski&password=<***>&scope=service_read service_write" 
   https://serwisant.online/oauth/token
 ```
 
@@ -128,7 +128,7 @@ Jeśli token uzyskujesz przy pomocy loginu i hasła, to otrzymasz w odpowiedzi d
 ```
 curl 
   -X POST 
-  --data "grant_type=refresh_token&refresh_token=<***>" 
+  --data "grant_type=refresh_token&client_id=<***>&client_secret=<***>&refresh_token=<***>"
   https://serwisant.online/oauth/token
 ```
 
