@@ -10,6 +10,15 @@ API oparte jest o autoryzację OAuth oraz format GraphQL. Działa na bazie stand
 GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach. Jest to koncepcja całkowicie 
 odmienna od API opartego o REST. 
 
+### Wsparcie
+
+Operator oprogramowania Serwisant Online nie udziela nieodpłatnego wsparcia w zakresie architektury integracji, API, bibliotek lub implementacji. Wszystkie technologie użyte w ramach API są technologiami otwartymi, dobrze udokumentowanumi. Wsparcia należy szukać:
+
+- w niniejszym dokumencie w zakresie podstawowych informacji
+- w dokumentzcji standardów GraphQL oraz OAuth
+
+Operator może udzielić odpłatnego wsparcia we weszystkich ww. zakresach. W celu uzywkania odpłatnego wsparcia prosimy o kontakt.
+
 ## Zacznij w kilku krokach
 
 1. Zapoznaj się z dokumentacją znajdującą się na stronie [https://graphql.org/learn](https://graphql.org/learn)
@@ -158,8 +167,7 @@ Przykłady wysyłania zapytań w PHP i innych językach można znaleźć w sieci
 
 Aby przeprowadzić pewne operacje zapisu, wymagane jest uprzednie pozyskanie identyfikatorów relacji. 
 
-Dla przykładu, 
-aby dodać klienta za pomocą mutacji `createCustomer` należy uprzednio za pomocą query `customerAgreements` pobrać
+Dla przykładu,  aby dodać klienta za pomocą mutacji `createCustomer` należy uprzednio za pomocą query `customerAgreements` pobrać
 wszystkie dostępne zgody RODO, przedstawić je klientowi, odebrać akceptację i przesłać je w postaci encji zawierającej 
 `ID` zgody i stanu akceptacji.
 
