@@ -7,15 +7,16 @@ w tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **całkowitą blo
 
 API oparte jest o autoryzację OAuth oraz format GraphQL. Działa na bazie standardowego protokołu HTTPS. 
 
-GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach. Jest to koncepcja całkowicie 
-odmienna od API opartego o REST. 
+GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach, przy czym jest to **koncepcja całkowicie 
+odmienna od API opartego o REST**. 
 
 ### Wsparcie
 
 Operator oprogramowania Serwisant Online nie udziela nieodpłatnego wsparcia w zakresie architektury integracji, API, bibliotek lub implementacji. Wszystkie technologie użyte w ramach API są technologiami otwartymi, dobrze udokumentowanumi. Wsparcia należy szukać:
 
 - w niniejszym dokumencie w zakresie podstawowych informacji
-- w dokumentzcji standardów GraphQL oraz OAuth
+- w dokumentacji standardów GraphQL oraz OAuth
+- na stronach pomocy do aplikacji Serwisant Online w zakresie informacji o procesach, danych, etc.
 
 Operator może udzielić odpłatnego wsparcia we weszystkich ww. zakresach. W celu uzywkania odpłatnego wsparcia prosimy o kontakt.
 
@@ -30,6 +31,14 @@ Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego
 1. Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać 
 token autoryzacyjny i wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. 
 Aby używać API wystarczy sam klient HTTP
+
+### Jest coś więcej?
+
+Tak, do API dodajemy dwie biblioteki, które ułatwią ci integrację, w zależności od potrzeb i technologii które stosujesz:
+
+- PHP API SDK - nakładka na API pozwlająca na obiektowy dostęp do zasobów i obiektowy zapis danych [https://packagist.org/packages/serwisant/serwisant-api](https://packagist.org/packages/serwisant/serwisant-api)
+- PHP CP SDK - biblioteka z implementacją kompletnego panelu klienckiego, identyczego jak ten, w ramach Naprawiam Online [https://packagist.org/packages/serwisant/serwisant-cp](https://packagist.org/packages/serwisant/serwisant-cp) 
+- przykładową implenentację panelu klienckiego na własnej stronie [https://github.com/SerwisantOnline/serwisant-cp-php](https://github.com/SerwisantOnline/serwisant-cp-php)
 
 ## Ok, ale gdzie jest dokumentacja?
 
