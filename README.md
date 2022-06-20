@@ -155,6 +155,7 @@ curl
 ## Zapytania API
 
 Zapytania API wysyłane są metodą `POST` gdzie payload przekazany jest w formie `raw JSON` na adres odpowiedniej schemy. 
+
 Zapytanie powinno być zgodnie ze specyfikacją GraphQL i zawierać nagłówki HTTP:
 - `Authorization: Bearer 000000000000000000000`  - nagłówek autoryzacji, gdzie `000000000000000000000` jest tokenem OAuth 
 uzyskanym z osobnego adresu (patrz sekcja _Autoryzacja_)
@@ -172,9 +173,58 @@ curl
 
 Przykłady wysyłania zapytań w PHP i innych językach można znaleźć w sieci, np. w artykule https://www.contentful.com/blog/2021/01/14/GraphQL-via-HTTP-in-five-ways/
 
+### Complexity
+
+W ramach API GQL działającego na serwisant.online wdrożony jest mechanizm ochrony przed nadmierną złożonością i głębokością zapytań. Zapytania o nadmiernej złożoności zwrócą informację: `Query has complexity of x, which exceeds max complexity of y` gdzie `x` to obliczona złożoność wysłanego zapytania, zaś `y` to maksymalna dopuszczalna złożoność. 
+
+Głębokość zapytania, to ilość zagnieżdzeń kolejnych encji w zapytaniu.
+
+Złożoność zapytania to obliczony dla wysłanego zapytania koszt, który:
+
+- dla każdego żądanego pola wynosi 1
+- dla wybranych pól, które zwracają kosztowny obliczeniowo wynik lub np wynik pobierany z zewnętrznej usługi, może wynosić od 2 do 1000
+- dla list które w parametach mają `limit` (domyślnie, jeśli nie jest podany, wynosi 20) jest mnożony o wartość `limit`
+
+Przykładowo, zapytanie:
+```
+{
+  repairs {
+    items {
+      ID
+      rma
+      customer {
+        ID
+      }
+    }
+  }
+}
+```
+będzie miało głębokość 3 oraz złożoność 80, ponieważ wewnątrz `items` mamy 4 pola, które możone są przez domyślny limit ilości wyników, czyli 20. 
+
+Natomiast zapytanie:
+```
+{
+  repairs(limit: 1) {
+    items {
+      ID
+      rma
+      customer {
+        ID
+      }
+    }
+  }
+}
+```
+będzie miało nadal głębokość 3, przy czym złożoność wyniesie 4, ponieważ nadal mamy 4 pola, ale stosujemy ograniczenie 1 wyniku.
+
+Mając na uwadze powyższe, należy stosować się do następujących zaleceń:
+
+- nie dodawać do zapytań żadnych nadmiarowych pól, które nie będą w rzeczywistości konsumowane - dotyczy to szczególnie list elementów
+- kompleksowe zapytania, z dużą ilością pól, powinny dotyczyć indywidualnych elementów (mieć `filter: ID`) i zawsze mieć ograniczenie do 1 rekordu, niezależnie od tego, ile w rzeczywistości zwracają wyników.
+
 ### Przykładowe procesy
 
-Aby przeprowadzić pewne operacje zapisu, wymagane jest uprzednie pozyskanie identyfikatorów relacji. 
+API udostępnia składowe elementy potrzebne do przeprowadzenia procesu (operacji) ale nie implementuje caych procesów. W dużej ilości przypadków, aby wykonać jakąś operację, należy wykorzystać więcej elementów API, np zapytań lub innych mutacji, np. aby przeprowadzić pewne operacje zapisu, wymagane jest uprzednie pozyskanie identyfikatorów relacji które są wymagane. 
 
 Dla przykładu,  aby dodać klienta za pomocą mutacji `createCustomer` należy uprzednio za pomocą query `customerAgreements` pobrać
 wszystkie dostępne zgody RODO, przedstawić je klientowi, odebrać akceptację i przesłać je w postaci encji zawierającej 
@@ -184,11 +234,10 @@ W innym przykładzie, aby dodać naprawę za pomocą mutacji `createRepair` nale
 dodaniem naprawy należy za pomocą query `dictionaryEntries` pobrać wszystkie typy, przedstawić je klientowi, np. w postaci
 listy wyboru - zaś wybrany identyfikator `ID` przesłać jako `type` do encji tworzącej naprawę.
 
+Kolejność operacji w procesie zazwyczaj odowiada kolejności operacji w interfejsie webowym aplikacji, dlatego jeśli nie wiesz jak powinna wyglądać ta kolejność, sprawdź jak wykonuje się daną operację w aplikacji webowej.
+
 ### Inne wskazówki
 
-Zawsze zwracaj uwagę na typ zwracany lub przyjmowany. To on decyduje o tym, co zostanie zwrócone lub przyjęte, nie nazwa.
+Zawsze zwracaj uwagę na typ zwracany lub przyjmowany. To on decyduje o tym, co zostanie zwrócone lub przyjęte, nie nazwa. Np, w odpowiedziach na `query` identyfkator relacji `HashID` ma nazwę `ID`, w mutacjach natomiast nazywa się tak, jak encja, którą opisuje, czyli np. `customer`, `type`.
 
 Daty przesyłamy w formacie `ISO 8601` wraz ze strefą czasową.
-
-Wszelkie identyfikatory relacji są typu `HashID` i mają postać losowego ciągu znaków. Po stronie źródła pola je zawierające
-nazywają się najczęściej `ID`, po stronie odbiorcy pola nazywają się tak jak relacja, np. `type`, `customer` 
