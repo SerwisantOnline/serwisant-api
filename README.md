@@ -3,12 +3,12 @@
 ## Wstęp
 
 Dostęp do API mają klienci z aktywną subskrypcją `all-in-one`. Wygaśnięcie subskrypcji które skutkuje przejściem aplikacji 
-w tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **całkowitą blokadą API**.
+w tryb 'tylko-do-odczytu' będzie, w przypadku API skutkowało **blokadą API**.
 
 API oparte jest o autoryzację OAuth oraz format GraphQL. Działa na bazie standardowego protokołu HTTPS. 
 
-GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach, przy czym jest to **koncepcja całkowicie 
-odmienna od API opartego o REST**. 
+GraphQL jest typowanym API, w którym używa się składni JSON do żądań a także w odpowiedziach, przy czym jest to **koncepcja odmienna od API opartego o REST**.
+Zapoznaj się z resztą dokumentu, aby uzyskać informacje.
 
 ### Wsparcie
 
@@ -23,14 +23,11 @@ Operator może udzielić odpłatnego wsparcia we weszystkich ww. zakresach. W ce
 ## Zacznij w kilku krokach
 
 1. Zapoznaj się z dokumentacją znajdującą się na stronie [https://graphql.org/learn](https://graphql.org/learn)
-1. Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API
-1. Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altair.sirmuel.design)
-1. Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. 
-Nie potrzebujesz do tego aplikacji i danych OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację już teraz
-1. Zarejestruj aplikację OAuth w ustawieniach Serwisant Online
-1. Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać 
-token autoryzacyjny i wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. 
-Aby używać API wystarczy sam klient HTTP
+1. Przeczytaj resztę tego dokumentu, aby pogłębić wiedzę na temat API Serwisant Online
+1. Pobierz i zainstaluj oprogramowanie do przeglądania dokumentacji API i wykonywania zapytań. Polecamy [Altair GraphQL Client](https://altairgraphql.dev)
+1. Uruchom oprogramowanie i użyj jednego z adresów, podanych w sekcji _"Zakres funkcjonalny, aktorzy"_ aby przeglądać API. Nie potrzebujesz do tego aktywnej subskrypcji Serwisant Online lub danych autoryzujących OAuth, po prostu użyj odpowiedniego adresu i zacznij przeglądać dokumentację już teraz
+1. Aby pozyskać dane z API zaloguj się do Serwisant Online i zarejestruj aplikację OAuth. Aplikacjami OAuth możesz zarządzać w (górna belka nawigacyjna) -> Panel konfiguracyjny aplikacji -> API. Wymagane jest posiadanie uprawnienia "Szef"
+1. Użyj klienta HTTP odpowiedniego dla języka, w którym piszesz, np `cUrl` dla `PHP` lub `Faraday` dla `Ruby` aby pobrać token autoryzacyjny i wykonywać zapytania GraphQL - nie musisz używać specjalnych bibliotek OAuth lub klientów GraphQL. Aby używać API wystarczy sam klient HTTP, natomiast możesz skorzystać z wysokopiziomowych bibliotek ułatwiających komunikację z GraphQL
 
 ### Jest coś więcej?
 
@@ -42,7 +39,7 @@ Tak, do API dodajemy dwie biblioteki, które ułatwią ci integrację, w zależn
 
 ## Ok, ale gdzie jest dokumentacja?
 
-Przeczytaj punkt 3. we wcześniejszej sekcji. Schema API jest równocześnie jego dokumentacją - wiele zapytań, mutacji i pól ma także dodane przez nas opisy, które omawiają czym jest dany element.
+Przeczytaj punkt 3. we wcześniejszej sekcji. Schema API jest równocześnie jego dokumentacją - wiele zapytań, mutacji i pól ma także dodane przez nas opisy, które omawiają czym jest dany element. 
 
 ## Zakres funkcjonalny, aktorzy
 
@@ -241,3 +238,5 @@ Kolejność operacji w procesie zazwyczaj odowiada kolejności operacji w inter
 Zawsze zwracaj uwagę na typ zwracany lub przyjmowany. To on decyduje o tym, co zostanie zwrócone lub przyjęte, nie nazwa. Np, w odpowiedziach na `query` identyfkator relacji `HashID` ma nazwę `ID`, w mutacjach natomiast nazywa się tak, jak encja, którą opisuje, czyli np. `customer`, `type`.
 
 Daty przesyłamy w formacie `ISO 8601` wraz ze strefą czasową.
+
+Serwer posiada mechanizmy ograniczające ilośc zapytań do API w czasie. Jeśli dostajesz odpowiedź HTTP 429, oznacza to, że zbyt często odpytujesz API. Jeśli dotyczy to operacji pozyskiwania tokena OAuth, zapisz token do cache - tokeny mają czas życia, i mogą być używane wielokrotnie do czsu ich wygaśnięcia. Nie stosuj operacji szybkiego poolingu na danych API.
